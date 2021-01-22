@@ -1,9 +1,17 @@
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 
 import rob_engine
 import cop_engine
+
+XMIN = 0
+YMIN = 0
+XMAX = 10
+YMAX = 10
+PADDING = 3
+turn = 0
+BOARD_OPTIONS = [[XMIN,YMIN],[XMAX,YMAX]]
 
 class Object:
     pos = [0,0]
@@ -13,51 +21,41 @@ class Rob(Object):
     def __init__(self, id, pos):
         self.id = id
         self.pos = pos
-        
-    def action(self, rob_pos_list, cop_pos_list):
-        return rob_engine.action(self.pos, rob_pos_list, cop_pos_list)
 
 class Cop(Object):
     def __init__(self, id, pos):
         self.id = id
         self.pos = pos
-    
-    def action(self, rob_pos_list, cop_pos_list):
-        return cop_engine.action(self.pos, rob_pos_list, cop_pos_list)
         
 class Board:
-    Objects = []
+    states = []
+    robplot = None
+    copplot = None
     def __init__(self, rob_list, cop_list):
-        self.Objects.append((rob_list,cop_list))
+        self.states.append((rob_list,cop_list))
     
-    def addState(self, rob_list, cop_list):
-        self.Objects.append((rob_list, cop_list))
+    def addState(self, turn):
+        if turn >= len(self.states):
+            self.addState(turn-1)
+        rob_pos_list = []
+        cop_pos_list = []
+        rob_list = []
+        cop_list = []
+        for rob in self.states[turn-1][0]:
+            rob_pos_list.append(rob.pos)
+        for cop in self.states[turn-1][1]:
+            cop_pos_list.append(cop.pos)
+        if turn % 2 == 1 : # rob turn
+            for rob in self.states[turn-1][0]:
+                rob_list.append(Rob(rob.id, rob_engine.action(rob.pos, rob_pos_list, cop_pos_list, BOARD_OPTIONS)))
+            cop_list = self.states[turn-1][1]
+        else :            
+            for cop in self.states[turn-1][1]:
+                cop_list.append(Cop(cop.id, cop_engine.action(cop.pos, rob_pos_list, cop_pos_list, BOARD_OPTIONS)))
+            rob_list = self.states[turn-1][0]
+        
+        self.states.append((rob_list, cop_list))
 
-class Plt_Ctrl_Index(object):
-    ind = 0
-    def next(self, event):
-        self.ind += 1
-        i = self.ind % len(freqs)
-        ydata = np.sin(2*np.pi*freqs[i]*t)
-        l.set_ydata(ydata)
-        plt.draw()
-
-    def prev(self, event):
-        self.ind -= 1
-        plt.draw()
-
-def graph_init():
-    plt.grid(True)
-    plt.xlim(-50,50)
-    plt.ylim(-50,50)
-    callback = Plt_Ctrl_Index()
-    axprev = plt.axes([0.7, 0.05, 0.1, 0.075])
-    axnext = plt.axes([0.81, 0.05, 0.1, 0.075])
-    bnext = Button(axnext, 'Next')
-    bnext.on_clicked(callback.next)
-    bprev = Button(axprev, 'Previous')
-    bprev.on_clicked(callback.prev)
-    
 def init():
     rob_pos_data = [[1,1]]
     cop_pos_data = [[7,7],[6,7]]
@@ -68,65 +66,87 @@ def init():
     for i in range(0, len(cop_pos_data)):
         cop_list.append(Cop(id=i+1, pos=cop_pos_data[i]))
     return rob_list,cop_list
+
+fig = plt.figure(figsize=(8,8))
+ax = fig.add_subplot(1,1,1)
+
+x_major_ticks = np.arange(XMIN, XMAX, 5)
+x_minor_ticks = np.arange(XMIN, XMAX, 1)
+y_major_ticks = np.arange(YMIN, YMAX, 5)
+y_minor_ticks = np.arange(YMIN, YMAX, 1)
+
+ax.set_xticks(x_major_ticks)
+ax.set_xticks(x_minor_ticks, minor=True)
+ax.set_yticks(y_major_ticks)
+ax.set_yticks(y_minor_ticks, minor=True)
+
+ax.grid(which='both')
+
+ax.grid(which='minor', alpha=0.7)
+ax.grid(which='major', alpha=0.5)
+
+ax.set_xlim(XMIN-PADDING,XMAX+PADDING)
+ax.set_ylim(YMIN-PADDING,YMAX+PADDING)
+
+rob_list, cop_list = init()
+board = Board(rob_list, cop_list)
+
+
+
+l1, = ax.plot([rob.pos[0] for rob in rob_list], [rob.pos[1] for rob in rob_list], 'ro', markersize = 20)
+l2, = ax.plot([cop.pos[0] for cop in cop_list], [cop.pos[1] for cop in cop_list], 'bo', markersize = 20)
+
+class Index(object):
+
+    def next(self, event):
+        global board, turn
+        turn += 1
+        print("next : %d" % (turn))
+        if turn >= len(board.states):
+            board.addState(turn)
+        rob_xdata = [ x.pos[0] for x in board.states[turn][0] ]
+        rob_ydata = [ x.pos[1] for x in board.states[turn][0] ]
+        cop_xdata = [ x.pos[0] for x in board.states[turn][1] ]
+        cop_ydata = [ x.pos[1] for x in board.states[turn][1] ]
+        l1.set_xdata(rob_xdata)
+        l1.set_ydata(rob_ydata)
+        l2.set_xdata(cop_xdata)
+        l2.set_ydata(cop_ydata)
+        plt.draw()
+
+    def prev(self, event):
+        global board, turn
+        if turn > 0: 
+            turn -= 1
+            print("prev : %d" % (turn))
+            rob_xdata = [ x.pos[0] for x in board.states[turn][0] ]
+            rob_ydata = [ x.pos[1] for x in board.states[turn][0] ]
+            cop_xdata = [ x.pos[0] for x in board.states[turn][1] ]
+            cop_ydata = [ x.pos[1] for x in board.states[turn][1] ]
+            l1.set_xdata(rob_xdata)
+            l1.set_ydata(rob_ydata)
+            l2.set_xdata(cop_xdata)
+            l2.set_ydata(cop_ydata)
+            plt.draw()
     
-def check_state(rob_list, cop_list):
+def check_capture_state(rob_list, cop_list):
     for rob in rob_list:
         for cop in cop_list:
             if(rob.pos[0] == cop.pos[0] and rob.pos[1] == cop.pos[1]):
                 return True
     return False
 
-def display(board, rob_list, cop_list):
-    plt.plot([rob_pos[0] for rob_pos in rob_pos_list], [rob_pos[1] for rob_pos in rob_pos_list], 'ro')
-    plt.plot([cop_pos[0] for cop_pos in cop_pos_list], [cop_pos[1] for cop_pos in cop_pos_list], 'bo')
-    
-def start_routine(rob_list,cop_list, board):
-    turn = 0
-    MAX_TURN = 100
-    while turn < MAX_TURN:
-        graph_init()
-        turn += 1
-        
-        rob_pos_list = []
-        cop_pos_list = []
-        rob_next = []
-        cop_next = []
-        
-        for rob in rob_list:
-            rob_pos_list.append(rob.pos)
-        for cop in cop_list:
-            cop_pos_list.append(cop.pos)
-        
-        if(check_state(rob_list, cop_list)):
-            break     
+callback = Index()
+axpprev = plt.axes([0.5, 0, 0.09, 0.05])
+axprev = plt.axes([0.6, 0, 0.09, 0.05])
+axnext = plt.axes([0.7, 0, 0.09, 0.05])
+axnnext = plt.axes([0.8, 0, 0.09, 0.05])
+bprev = Button(axprev, 'Prev')
+bprev.on_clicked(callback.prev)
+bnext = Button(axnext, 'Next')
+bnext.on_clicked(callback.next)
+bnnext = Button(axnext, 'Next')
+bnext.on_clicked(callback.next)
 
-        #update to next states
-        for rob in rob_list:
-            rob_next.append(rob.action(rob_pos_list, cop_pos_list))
-        for cop in cop_list:
-            cop_next.append(cop.action(rob_pos_list, cop_pos_list))
-        
-        for i in range(0, len(rob_list)):
-            rob_list[i].pos = rob_next[i]
-        for i in range(0, len(cop_list)):
-            cop_list[i].pos = cop_next[i]
-        
-        board.addState(rob_list, cop_list)
-        
-        #display board
-        
-        #display(board)
-        
-        plt.plot([rob_pos[0] for rob_pos in rob_pos_list], [rob_pos[1] for rob_pos in rob_pos_list], 'ro')
-        plt.plot([cop_pos[0] for cop_pos in cop_pos_list], [cop_pos[1] for cop_pos in cop_pos_list], 'bo')
-        plt.show()
-        plt.draw()
-        
 
-def main():
-    rob_list, cop_list = init()
-    board = Board(rob_list, cop_list)
-    start_routine(rob_list, cop_list, board)
-    
-if __name__ == '__main__':
-    main()
+plt.show()
