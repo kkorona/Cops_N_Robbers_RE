@@ -2,8 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 
+import copy
+
 import rob_engine
 import cop_engine
+
+# Set system variables for engine
 
 XMIN = 0
 YMIN = 0
@@ -13,6 +17,7 @@ PADDING = 3
 turn = 0
 BOARD_OPTIONS = [[XMIN,YMIN],[XMAX,YMAX]]
 
+# Class definitions
 class Object:
     pos = [0,0]
     passable = False
@@ -37,6 +42,8 @@ class Board:
     def addState(self, turn):
         if turn >= len(self.states):
             self.addState(turn-1)
+        else:
+            return
         rob_pos_list = []
         cop_pos_list = []
         rob_list = []
@@ -46,13 +53,17 @@ class Board:
         for cop in self.states[turn-1][1]:
             cop_pos_list.append(cop.pos)
         if turn % 2 == 1 : # rob turn
+            print("rob")
             for rob in self.states[turn-1][0]:
                 rob_list.append(Rob(rob.id, rob_engine.action(rob.pos, rob_pos_list, cop_pos_list, BOARD_OPTIONS)))
-            cop_list = self.states[turn-1][1]
-        else :            
+            for cop in self.states[turn-1][1]:
+                cop_list.append(copy.deepcopy(cop))
+        else : # cop turn
+            print("cop")
             for cop in self.states[turn-1][1]:
                 cop_list.append(Cop(cop.id, cop_engine.action(cop.pos, rob_pos_list, cop_pos_list, BOARD_OPTIONS)))
-            rob_list = self.states[turn-1][0]
+            for rob in self.states[turn-1][0]:
+                rob_list.append(copy.deepcopy(rob))
         
         self.states.append((rob_list, cop_list))
 
@@ -85,8 +96,8 @@ ax.grid(which='both')
 ax.grid(which='minor', alpha=0.7)
 ax.grid(which='major', alpha=0.5)
 
-ax.set_xlim(XMIN-PADDING,XMAX+PADDING)
-ax.set_ylim(YMIN-PADDING,YMAX+PADDING)
+ax.set_xlim(XMIN,XMAX)
+ax.set_ylim(YMIN,YMAX)
 
 rob_list, cop_list = init()
 board = Board(rob_list, cop_list)
@@ -141,12 +152,14 @@ axpprev = plt.axes([0.5, 0, 0.09, 0.05])
 axprev = plt.axes([0.6, 0, 0.09, 0.05])
 axnext = plt.axes([0.7, 0, 0.09, 0.05])
 axnnext = plt.axes([0.8, 0, 0.09, 0.05])
-bprev = Button(axprev, 'Prev')
+bpprev = Button(axpprev, '<<')
+# bpprev.on_clicked(callback.pprev)
+bprev = Button(axprev, '<')
 bprev.on_clicked(callback.prev)
-bnext = Button(axnext, 'Next')
+bnext = Button(axnext, '>')
 bnext.on_clicked(callback.next)
-bnnext = Button(axnext, 'Next')
-bnext.on_clicked(callback.next)
+bnnext = Button(axnnext, '>>')
+# bnnext.on_clicked(callback.next)
 
 
 plt.show()
