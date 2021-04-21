@@ -11,7 +11,8 @@ import cop_engine
 
 XMIN = 0
 YMIN = 0
-XMAX = 10
+
+XMAX = 19
 YMAX = 10
 PADDING = 3
 turn = 0
@@ -93,8 +94,8 @@ ax.set_yticks(y_minor_ticks, minor=True)
 
 ax.grid(which='both')
 
-ax.grid(which='minor', alpha=0.7)
-ax.grid(which='major', alpha=0.5)
+ax.grid(which='minor', alpha=1)
+ax.grid(which='major', alpha=1)
 
 ax.set_xlim(XMIN,XMAX)
 ax.set_ylim(YMIN,YMAX)
