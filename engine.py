@@ -12,7 +12,7 @@ import cop_engine
 XMIN = 0
 YMIN = 0
 
-XMAX = 19
+XMAX = 20
 YMAX = 10
 PADDING = 3
 turn = 0
@@ -86,7 +86,6 @@ x_major_ticks = np.arange(XMIN, XMAX, 5)
 x_minor_ticks = np.arange(XMIN, XMAX, 1)
 y_major_ticks = np.arange(YMIN, YMAX, 5)
 y_minor_ticks = np.arange(YMIN, YMAX, 1)
-
 ax.set_xticks(x_major_ticks)
 ax.set_xticks(x_minor_ticks, minor=True)
 ax.set_yticks(y_major_ticks)
@@ -96,9 +95,11 @@ ax.grid(which='both')
 
 ax.grid(which='minor', alpha=1)
 ax.grid(which='major', alpha=1)
+plt.axis([XMIN,XMAX,YMIN,YMAX], 'equal')
+# ax.set_xlim(XMIN,XMAX)
+# ax.set_ylim(YMIN,YMAX)
 
-ax.set_xlim(XMIN,XMAX)
-ax.set_ylim(YMIN,YMAX)
+plt.gca().set_aspect("equal")
 
 rob_list, cop_list = init()
 board = Board(rob_list, cop_list)
