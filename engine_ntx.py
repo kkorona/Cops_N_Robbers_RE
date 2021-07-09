@@ -37,59 +37,9 @@ def init():
 
 G = gen_cylinder.gen_cylinder(10,20)
 
-class Index(object):
-    def next(self, event):
-        global board, turn
-        turn += 1
-        print("next : %d" % (turn))
-        if turn >= len(board.states):
-            board.addState(turn)
-        rob_xdata = [ x.pos[0] for x in board.states[turn][0] ]
-        rob_ydata = [ x.pos[1] for x in board.states[turn][0] ]
-        cop_xdata = [ x.pos[0] for x in board.states[turn][1] ]
-        cop_ydata = [ x.pos[1] for x in board.states[turn][1] ]
-        l1.set_xdata(rob_xdata)
-        l1.set_ydata(rob_ydata)
-        l2.set_xdata(cop_xdata)
-        l2.set_ydata(cop_ydata)
-        plt.draw()
 
-    def prev(self, event):
-        global board, turn
-        if turn > 0: 
-            turn -= 1
-            print("prev : %d" % (turn))
-            rob_xdata = [ x.pos[0] for x in board.states[turn][0] ]
-            rob_ydata = [ x.pos[1] for x in board.states[turn][0] ]
-            cop_xdata = [ x.pos[0] for x in board.states[turn][1] ]
-            cop_ydata = [ x.pos[1] for x in board.states[turn][1] ]
-            l1.set_xdata(rob_xdata)
-            l1.set_ydata(rob_ydata)
-            l2.set_xdata(cop_xdata)
-            l2.set_ydata(cop_ydata)
-            plt.draw()
-    
-def check_capture_state(rob_list, cop_list):
-    for rob in rob_list:
-        for cop in cop_list:
-            if(rob.pos[0] == cop.pos[0] and rob.pos[1] == cop.pos[1]):
-                return True
-    return False
 
 
 viz_cylinder(G)
-callback = Index()
-axpprev = plt.axes([0.5, 0, 0.09, 0.05])
-axprev = plt.axes([0.6, 0, 0.09, 0.05])
-axnext = plt.axes([0.7, 0, 0.09, 0.05])
-axnnext = plt.axes([0.8, 0, 0.09, 0.05])
-bpprev = Button(axpprev, '<<')
-# bpprev.on_clicked(callback.pprev)
-bprev = Button(axprev, '<')
-# bprev.on_clicked(callback.prev)
-bnext = Button(axnext, '>')
-# bnext.on_clicked(callback.next)
-bnnext = Button(axnnext, '>>')
-# bnnext.on_clicked(callback.next)
 
 plt.show()
