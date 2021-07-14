@@ -19,6 +19,7 @@ def boundary_violation(XX, YY, BOARD_OPTIONS):
     elif BOARD_OPTIONS[1][1] < YY:
         return True
     else:
+    
         return False
     
 def action(cur_pos, rob_pos_list, cop_pos_list, BOARD_OPTIONS):
