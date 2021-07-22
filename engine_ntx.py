@@ -31,7 +31,6 @@ cops_state = []
 def draw_agent(P, color):
     nx.draw(G, pos=pos, nodelist=P, \
                       node_size=800, node_color=color  )
-    
 
 def draw_robber():
     draw_agent(robber_state, rcolor)
