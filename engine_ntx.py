@@ -9,17 +9,22 @@ import gen_cylinder
 import rob_engine
 import cop_engine
 
-N = 20
-M = 10
+cylinder_width = 20
+cylinder_height = 10
 
 ncolor="gainsboro"
 ccolor="limegreen"
 rcolor="tomato"
 ecolor='gray'
 
-G = gen_cylinder.gen_cylinder(N,M)
+TURN_LIMIT = 1000
+
+G = gen_cylinder.gen_cylinder(cylinder_width,cylinder_height)
 pos = dict( (n, n) for n in G.nodes() ) # pos=(위치, node 이름)
 vlabels = dict( ((i, j), str(i)+","+str(j) ) for i, j in G.nodes() )
+
+def check_capture():
+    pass
 
 def viz_cylinder(G):
     nx.draw_networkx(G, pos=pos, node_size=800,  labels=vlabels,node_color='tan', edge_color='r', font_size = 8)
@@ -48,6 +53,12 @@ def init_cop_state():
 def init():
     init_robber_state()
     init_cop_state()
+    
+def check_capture():
+    for cop in cops_state:
+        if cop[0] == robber_state[0] and cop[1] == robber_state[1]:
+            return True
+    return False
 
 init()
 viz_cylinder(G)
@@ -56,4 +67,24 @@ viz_cylinder(G)
 draw_cops()
 draw_robber()
 
-plt.show()
+plt.save()
+
+turn = 0
+player = "ROBBER"
+
+while check_capture():
+    turn += 1
+    if player == "ROBBER":
+        robber_state = rob_engine.action(G, cylinder_width, cylinder_height, robber_state, cops_state)
+        player = "COPS"
+    
+    else :
+        cops_state = cop_engine.action(G, cylinder_width, cylinder_height, robber_state, cops_state)
+        player = "ROBBER"
+
+    draw_cops()
+    draw_robber()
+    plt.save(str(turn)+".png")
+    if turn >= TURN_LIMIT:
+        break
+    

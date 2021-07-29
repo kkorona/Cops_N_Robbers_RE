@@ -12,5 +12,5 @@ def get_L1_norm(A, B):
 def get_L2_norm(A, B):
     return math.sqrt(((A[0]-B[0]) ** 2) + ((A[1]-B[1]) ** 2))
     
-def get_boundary_distance(A, N, M):
-    return min(M-A[1], A[1])
+def get_boundary_distance(A, width, height):
+    return min(height-A[1], A[1])
